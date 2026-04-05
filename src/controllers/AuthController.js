@@ -1,36 +1,73 @@
-import bcrypt from 'bcrypt.js'
+import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
+import { pool } from '../config/db.js'
 
 const Login = async (req, res) => {
-  const {email, password} = req.body
+  try {
+    const { email, password } = req.body
 
-  const result = await pool.query(
-    'select * from users where email = $1',
-    [email]
-  )
+    // 🧱 1. Basic validation
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email and password are required" })
+    }
 
-  const user = result.rows[0]
-  if(!user)
-      return res.status(404).json("no user")
+    // 🧠 2. Email format check
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ error: "Invalid email format" })
+    }
 
-  const is_match = await bcrypt.compare(password, user.password)
-  if(!is_match)
-    return res.status(401).json("wrong password")
+    // 🔍 3. Fetch user
+    const result = await pool.query(
+      'SELECT id, email, password, role, is_active FROM users WHERE email = $1',
+      [email]
+    )
 
-  const token = jwt.sign(
-    {id: user.id, role: user.role},
-    process.env.JWT_SECRET,
-    {expiresIn: '1d'}
-  )
+    const user = result.rows[0]
 
-  res.json({token})
+    // 🚫 4. Avoid user enumeration attack
+    if (!user) {
+      return res.status(401).json({ error: "Invalid credentials" })
+    }
 
-  console.log("login called")
+    // 🚫 5. Check active status
+    if (!user.is_active) {
+      return res.status(403).json({ error: "User account is inactive" })
+    }
 
+    // 🔐 6. Compare password
+    const isMatch = await bcrypt.compare(password, user.password)
+
+    if (!isMatch) {
+      return res.status(401).json({ error: "Invalid credentials" })
+    }
+
+    // 🎟️ 7. Generate token
+    const token = jwt.sign(
+      { id: user.id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: '1d' }
+    )
+
+    console.log("login called")
+
+    return res.json({
+      message: "Login successful",
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role
+      }
+    })
+
+  } catch (error) {
+    console.error("Login Error:", error)
+    return res.status(500).json({ error: "Internal Server Error" })
+  }
 }
 
-import bcrypt from 'bcryptjs'
-import { pool } from '../config/db.js'
+// export { Login }
 
 const Register = async (req, res) => {
   try {

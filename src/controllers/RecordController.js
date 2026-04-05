@@ -54,4 +54,54 @@ let params = [req.user.id];
   }
 };
 
-export { CreateRecord, GetAllRecords };
+// export { CreateRecord, GetAllRecords };
+
+
+const UpdateRecord = async (req, res) => {
+  const { id } = req.params;
+  const { amount, type, category, description, date } = req.body;
+
+  try {
+    // Check if record exists first
+   const checkRecord = await pool.query(
+  "SELECT * FROM records WHERE id = $1 AND user_id = $2",
+  [id, req.user.id]
+);
+    if (checkRecord.rows.length === 0) {
+      return res.status(404).json({ error: "Record not found" });
+    }
+
+    const result = await pool.query(
+      `UPDATE records 
+       SET amount = COALESCE($1, amount), 
+           type = COALESCE($2, type), 
+           category = COALESCE($3, category), 
+           description = COALESCE($4, description), 
+           date = COALESCE($5, date) 
+       WHERE id = $6 RETURNING *`,
+      [amount, type, category, description, date, id]
+    );
+
+    res.json({ message: "Record updated successfully", record: result.rows[0] });
+  } catch (err) {
+    res.status(400).json({ error: "Update failed", detail: err.message });
+  }
+};
+
+const DeleteRecord = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const result = await pool.query("DELETE FROM records WHERE id = $1 RETURNING *", [id]);
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: "Record not found" });
+    }
+
+    res.json({ message: "Record deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ error: "Server error during deletion" });
+  }
+};
+
+export { CreateRecord, GetAllRecords, UpdateRecord, DeleteRecord };

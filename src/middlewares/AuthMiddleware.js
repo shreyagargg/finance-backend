@@ -27,3 +27,5 @@ const AuthMiddleware = async (req, res, next) => {
     }
 
 }
+
+export {AuthMiddleware}
