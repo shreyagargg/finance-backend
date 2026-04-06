@@ -29,28 +29,42 @@ if (typeof amount !== 'number' || amount <= 0) {
 };
 
 const GetAllRecords = async (req, res) => {
-  const { category, type, startDate, endDate } = req.query;
-  
-  // Basic dynamic filtering logic
-  let query = "SELECT * FROM records WHERE user_id = $1";
-let params = [req.user.id];
-
-  if (category) {
-    params.push(category);
-    query += ` AND category = $${params.length}`;
-  }
-  if (type) {
-    params.push(type);
-    query += ` AND type = $${params.length}`;
-  }
-
-  query += " ORDER BY date DESC";
-
   try {
-    const result = await pool.query(query, params);
-    res.json(result.rows);
+    const { category, type, startDate, endDate, search, page = 1, limit = 10 } = req.query;
+    const offset = (page - 1) * limit;
+    
+    let query = "SELECT * FROM records WHERE deleted_at IS NULL";
+    const values = [];
+
+    if (category) {
+      values.push(category);
+      query += ` AND category = $${values.length}`;
+    }
+    if (type) {
+      values.push(type);
+      query += ` AND type = $${values.length}`;
+    }
+    if (search) {
+      values.push(`%${search}%`);
+      query += ` AND description ILIKE $${values.length}`;
+    }
+
+    // Add Pagination
+    values.push(limit, offset);
+    query += ` ORDER BY date DESC LIMIT $${values.length - 1} OFFSET $${values.length}`;
+
+    const result = await pool.query(query, values);
+    
+    res.json({
+      meta: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        filters: { category, type, search }
+      },
+      data: result.rows
+    });
   } catch (err) {
-    res.status(500).json({ error: "Server error fetching records" });
+    res.status(500).json({ error: "Failed to fetch records" });
   }
 };
 
@@ -88,19 +102,22 @@ const UpdateRecord = async (req, res) => {
   }
 };
 
+// Example check for the DeleteRecord
 const DeleteRecord = async (req, res) => {
   const { id } = req.params;
-
   try {
-    const result = await pool.query("DELETE FROM records WHERE id = $1 RETURNING *", [id]);
+    const result = await pool.query(
+      "UPDATE records SET deleted_at = NOW() WHERE id = $1 AND deleted_at IS NULL RETURNING id", 
+      [id]
+    );
 
     if (result.rowCount === 0) {
-      return res.status(404).json({ error: "Record not found" });
+      return res.status(404).json({ error: "Record not found or already deleted" });
     }
 
-    res.json({ message: "Record deleted successfully" });
+    res.json({ message: "Record moved to trash (soft delete)" });
   } catch (err) {
-    res.status(500).json({ error: "Server error during deletion" });
+    res.status(500).json({ error: "Delete failed" });
   }
 };
 
