@@ -1,6 +1,6 @@
 import express from 'express';
 import { GetSummary } from '../controllers/DashboardController.js';
-import AuthMiddleware from '../middleware/AuthMiddleware.js';
+import {AuthMiddleware} from '../middlewares/AuthMiddleware.js';
 import { role } from '../controllers/RoleController.js';
 
 const DashboardRouter = express.Router();

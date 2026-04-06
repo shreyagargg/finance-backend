@@ -7,7 +7,7 @@ import {
 } from '../controllers/RecordController.js';
 import {AuthMiddleware} from '../middlewares/AuthMiddleware.js'; 
 import { role } from '../controllers/RoleController.js';
-import { validateRecord } from '../middleware/Validate.js';
+import { validateRecord } from '../middlewares/ValidationHandler.js';
 // ... other imports
 
 // Apply validation specifically to routes that modify data
@@ -20,8 +20,8 @@ RecordRouter.use(AuthMiddleware);
 RecordRouter.get('/', role('viewer', 'analyst', 'admin'), GetAllRecords);
 
 // Management: Admin only
-RecordRouter.post('/', role('admin'), CreateRecord);
-RecordRouter.put('/:id', role('admin'), UpdateRecord);
+// RecordRouter.post('/', role('admin'), CreateRecord);
+// RecordRouter.put('/:id', role('admin'), UpdateRecord);
 RecordRouter.delete('/:id', role('admin'), DeleteRecord);
 
 RecordRouter.put('/:id', role('admin'), validateRecord, UpdateRecord);

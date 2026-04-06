@@ -1,16 +1,11 @@
-import { Request, Response, NextFunction } from "express-serve-static-core";
 
-const validateRecord = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+const validateRecord = async (req, res, next) => {
   const { amount, type, category } = req.body;
 
   const validCategories = ['food', 'clothes', 'stationary', 'salary', 'bills', 'miscellaneous'];
   const validTypes = ['income', 'expense'];
 
-  const errors: string[] = [];
+  const errors = [];
 
   // 1. Amount Validation
   if (amount === undefined || typeof amount !== 'number' || amount <= 0) {

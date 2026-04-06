@@ -107,7 +107,7 @@ const DeleteRecord = async (req, res) => {
   const { id } = req.params;
   try {
     const result = await pool.query(
-      "UPDATE records SET deleted_at = NOW() WHERE id = $1 AND deleted_at IS NULL RETURNING id", 
+      "UPDATE records SET deleted_at = NOW() WHERE id = $1 AND user_id = $2 AND deleted_at IS NULL RETURNING id", 
       [id]
     );
 
