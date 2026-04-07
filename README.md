@@ -44,7 +44,68 @@ curl -X POST http://localhost:3000/api/v1/auth/register \
 ```bash
 curl -X POST http://localhost:3000/api/v1/auth/login \
 -H "Content-Type: application/json" \
--d '{"email":"test@test.com","password":"123456"}
+-d '{"email":"test@test.com","password":"123456"}'
 ```
 
-###
+### CRUD APIs
+#### Register Statement
+```bash
+curl -X POST http://localhost:3000/api/v1/records \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzc1NDE3OTMyLCJleHAiOjE3NzU1MDQzMzJ9.mYVYxSpw0Br9gNWb6EkDLvSLEHL1l69oplGUBdpzQpI" \
+  -d '{"amount":500,"type":"expense","category":"food"}'
+  ```
+
+  #### Delete statement
+  ```bash
+  curl -X DELETE http://localhost:3000/api/v1/records/1 \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzc1NDE3OTMyLCJleHAiOjE3NzU1MDQzMzJ9.mYVYxSpw0Br9gNWb6EkDLvSLEHL1l69oplGUBdpzQpI"
+  ```
+
+  #### View Statement
+  ```bash
+  curl -X GET http://localhost:3000/api/v1/records \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzc1NDE3OTMyLCJleHAiOjE3NzU1MDQzMzJ9.mYVYxSpw0Br9gNWb6EkDLvSLEHL1l69oplGUBdpzQpI"
+  ```
+
+  #### Edit statement
+  ```bash
+  curl -X PUT http://localhost:3000/api/v1/records/1 \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzc1NDE3OTMyLCJleHAiOjE3NzU1MDQzMzJ9.mYVYxSpw0Br9gNWb6EkDLvSLEHL1l69oplGUBdpzQpI" \
+  -d '{"amount":600,"description":"Updated food expense"}'
+  ```
+
+  #### Safe delete statement
+  ```bash
+  curl -X DELETE http://localhost:3000/api/v1/records/1 \
+  -H "Authorization: Bearer YOUR_ADMIN_JWT_TOKEN"
+
+  ```
+
+  ### Dashboard APIs
+  ```bash
+  curl -X GET http://localhost:3000/api/v1/dashboard/summary \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json"
+  ```
+
+  ## Screenshots
+
+  ### Register
+  ![alt text](public/register.png)
+
+  ### Login
+  ![alt text](public/login.png)
+
+  ### Creating records
+   ![alt text](public/record_post.png)
+
+  ### view records
+   ![alt text](public/records.png)
+
+  ### Error handling
+   ![alt text](public/error.png)
+
+  ### Dashboard
+  ![alt text](public/dashboard.png)
